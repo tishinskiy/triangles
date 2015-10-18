@@ -2,6 +2,9 @@ var w = 500;
 var h = 500;
 
 var l = 100;
+var lShift = 0.3;
+var lMin = l - l*lShift;
+var lMax = l + l*lShift;
 
 var getRandomInt = function(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -15,9 +18,9 @@ var threangle = {
 	bg: "rgba(65, 240, 240, 0.5)",
 	create: function(){
 	this.center = [w/2, h/2],
-		this.sides[0] = getRandomInt(l - l * 0.3, l + l * 0.3);
-		this.sides[1] = getRandomInt(l - l * 0.3, l + l * 0.3);
-		this.sides[2] = getRandomInt(l - l * 0.3, l + l * 0.3);
+		this.sides[0] = getRandomInt(lMin, lMax);
+		this.sides[1] = getRandomInt(lMin, lMax);
+		this.sides[2] = getRandomInt(lMin, lMax);
 
 
 		this.points[0] = [getRandomInt(this.center[0] - this.sides[0] / 2, this.center[0] + this.sides[0] / 2),
@@ -96,8 +99,8 @@ var threangleProto = {
 		this.sides = [],
 
 		this.sides[0] = Math.sqrt(Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2));
-		this.sides[1] = getRandomInt(l - l * 0.25, l + l * 0.25);
-		this.sides[2] = getRandomInt(l - l * 0.25, l + l * 0.25);
+		this.sides[1] = getRandomInt(lMin, lMax);
+		this.sides[2] = getRandomInt(lMin, lMax);
 
 		this.points[0] = a;
 		this.points[1] = b;
@@ -161,6 +164,8 @@ var drawObject = function(obj) {
 function draw() {
 	threangle.draw();
 
+	// console.log(threangle);
+
 	threangles = [];
 
 	threangles.push(Object.create(threangleProto).constructor(threangle.points[0], threangle.points[1]));
@@ -168,9 +173,9 @@ function draw() {
 	threangles.push(Object.create(threangleProto).constructor(threangle.points[2], threangle.points[0]));
 
 
-	console.log(threangles[0]);
-	console.log(threangles[1]);
-	console.log(threangles[2]);
+	// console.log(threangles[0]);
+	// console.log(threangles[1]);
+	// console.log(threangles[2]);
 
 	threangles[0].draw();
 	threangles[1].draw();
