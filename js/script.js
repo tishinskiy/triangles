@@ -18,6 +18,7 @@ var threangle = {
 	bg: "rgba(65, 240, 240, 0.5)",
 	create: function(){
 	this.center = [w/2, h/2],
+
 		this.sides[0] = getRandomInt(lMin, lMax);
 		this.sides[1] = getRandomInt(lMin, lMax);
 		this.sides[2] = getRandomInt(lMin, lMax);
@@ -36,7 +37,6 @@ var threangle = {
 		}
 
 		this.points[2] = therdPoint(this);
-
 		this.center = centerNormalize(this);
 
 	},
@@ -52,40 +52,46 @@ function centerNormalize(obj) {
 	return [(obj.points[0][0] + obj.points[1][0] +obj.points[2][0]) / 3, (obj.points[0][1] + obj.points[1][1] + obj.points[2][1]) / 3];
 }
 
-function therdPoint( obj) {
+function therdPoint(obj) {
 
-	angleR = Math.acos((Math.pow(obj.sides[1], 2) + Math.pow(obj.sides[2], 2) - Math.pow(obj.sides[0], 2)) / (2 * obj.sides[1] * obj.sides[2]));
+	var angleR = Math.acos((Math.pow(obj.sides[2], 2) + Math.pow(obj.sides[0], 2) - Math.pow(obj.sides[1], 2)) / (2 * obj.sides[2] * obj.sides[0]));
 
-	angle = Math.atan((obj.points[1][1] - obj.points[0][1]) / (obj.points[1][0] - obj.points[0][0]));
 
+	var angle = Math.atan((obj.points[1][1] - obj.points[0][1]) / (obj.points[1][0] - obj.points[0][0]));
+	var angleN;
+
+	if ((obj.points[1][0] - obj.points[0][0]) < 0) { angle = Math.PI + angle; }
+	
 	ww = obj.points[0][0] - (1 / (Math.tan(angle))*(obj.points[0][1] - obj.center[1]));
 
 	if (ww > obj.center[0]) {wCenter = 0;}
 	else {wCenter = 1;}
 
 	if((obj.points[0][0] > obj.points[1][0]) && (obj.points[0][1] >= obj.points[1][1])) {
-		if (wCenter == 0) {angleN = angle - Math.PI - angleR;}
-		else {angleN = -(Math.PI - (angleR + angle));}
+		if (wCenter == 0) {angleN = angle - angleR;}
+		else {angleN = angle + angleR;}
 	}
 
 	if((obj.points[0][0] > obj.points[1][0]) && (obj.points[0][1] < obj.points[1][1])) {
-		if (wCenter == 0) {angleN = -Math.PI + (angle + angleR);}
-		else {angleN = (Math.PI/2 - angleR) - (-Math.PI/2 - angle);}
+		if (wCenter == 0) {angleN = angle + angleR;}
+		else {angleN = angle - angleR;}
 	}
 
 	if((obj.points[0][0] < obj.points[1][0]) && (obj.points[0][1] >= obj.points[1][1])) {
-
-		if (wCenter ==0) {angleN = angle - angleR;}
+		if (wCenter == 0) {angleN = angle - angleR;}
 		else {angleN = angle + angleR;}
 	}
 
 	if((obj.points[0][0] <= obj.points[1][0]) && (obj.points[0][1] < obj.points[1][1])) {
-		if (wCenter ==0) {angleN = -Math.PI - (Math.PI/2 -(angleR - (Math.PI/2 - angle)));}
+		if (wCenter == 0) {angleN = angle + angleR;}
 		else {angleN = angle - angleR;}
 	}
 
-	xN = obj.points[0][0] + Math.cos(angleN) * obj.sides[2];
-	yN = obj.points[0][1] + Math.sin(angleN) * obj.sides[2];
+	var a = Math.cos(angleN);
+	var b = Math.sin(angleN);
+
+	var xN = obj.points[0][0] + a * obj.sides[2];
+	var yN = obj.points[0][1] + b * obj.sides[2];
 
 	return [xN, yN];
 }
@@ -110,7 +116,6 @@ var threangleProto = {
 			(this.points[0][1] + this.points[1][1]) / 2 + ((this.points[0][1] + this.points[1][1]) / 2 - threangle.center[1])
 		];
 		
-
 		this.points[2] = therdPoint(this);
 		this.center = centerNormalize(this);
 
@@ -132,7 +137,6 @@ function init() {
 }
 
 var drawObject = function(obj) {
-
 
 	ctx.fillStyle = obj.bg;
 	ctx.strokeStyle = "transparent";
@@ -156,8 +160,6 @@ var drawObject = function(obj) {
 	ctx.fillRect(obj.points[2][0]-1,obj.points[2][1]-1, 2, 2);
 	// ctx.fillStyle = "#18D1FF";
 	// ctx.fillRect(ww-1, obj.center[1]-1, 2, 2);
-
-
 }
 
 
@@ -171,7 +173,6 @@ function draw() {
 	threangles.push(Object.create(threangleProto).constructor(threangle.points[0], threangle.points[1]));
 	threangles.push(Object.create(threangleProto).constructor(threangle.points[1], threangle.points[2]));
 	threangles.push(Object.create(threangleProto).constructor(threangle.points[2], threangle.points[0]));
-
 
 	// console.log(threangles[0]);
 	// console.log(threangles[1]);
