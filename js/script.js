@@ -1,5 +1,6 @@
 var w = 500;
 var h = 500;
+var helpC = 0;
 
 var l = 100;
 var lShift = 0.3;
@@ -10,13 +11,30 @@ var getRandomInt = function(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-var threangles= [];
+var sideProto = {
+	lgth: 0,
+	state: true,
+	points: [],
+	parentA: 0,
+	constructor: function(lgth, state, points, parentA){
+		this.lgth = lgth;
+		this.state = state;
+		this.points = points;
+		this.parentA = parentA;
+		return this;
+	}
+}
 
-var threangle = {
+var allSides = [];
+var closedSides = [];
+
+var threangles = [];
+
+threangleStart = {
 	points: [],
 	sides: [],
 	bg: "rgba(65, 240, 240, 0.5)",
-	create: function(){
+	constructor: function(){
 	this.center = [w/2, h/2],
 
 		this.sides[0] = getRandomInt(lMin, lMax);
@@ -39,10 +57,15 @@ var threangle = {
 		this.points[2] = therdPoint(this);
 		this.center = centerNormalize(this);
 
+		allSides.push(Object.create(sideProto).constructor(this.sides[0], true, [this.points[0], this.points[1]], this));
+		allSides.push(Object.create(sideProto).constructor(this.sides[1], true, [this.points[1], this.points[2]], this));
+		allSides.push(Object.create(sideProto).constructor(this.sides[2], true, [this.points[2], this.points[0]], this));
+
+		return this;
+
 	},
 
 	draw: function() {
-		this.create();
 		drawObject(this);
 	}
 
@@ -96,28 +119,66 @@ function therdPoint(obj) {
 	return [xN, yN];
 }
 
+function sideLgth(a, b) {
+	return Math.sqrt(Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2));
+}
+
 
 var threangleProto = {
-	bg: "rgba(255, 255, 255, 0.3)",
+	points: [],
+	sides: [],
 
-	constructor: function(a, b){
-		this.points = [],
-		this.sides = [],
+	constructor: function(side){
 
-		this.sides[0] = Math.sqrt(Math.pow((a[0] - b[0]), 2) + Math.pow((a[1] - b[1]), 2));
+		this.bg = "rgba(255, 255, 255, " + (0.1+(++helpC)/10) + ")";
+
+		function nextSide(obj) {
+			// console.log(allSides.indexOf(obj));
+			if (allSides.indexOf(obj) == allSides.length-1) {return 0;}
+			else {return allSides.indexOf(obj)+1;}
+		}
+
+
+		var pointA = side.points[0];
+		var pointB = side.points[1];
+		var pointC = allSides[nextSide(side)].points[1];
+
+
+
+		var sideA = sideLgth(pointC, pointB);
+		var sideB = sideLgth(pointA, pointC);
+		var sideC = sideLgth(pointA, pointB);
+
+		var angleB = Math.acos((Math.pow(sideC, 2) + Math.pow(sideA, 2) - Math.pow(sideB, 2)) / (2 * sideA * sideC));
+		if (allSides[nextSide(side)].parentA !== side.parentA) {
+			// console.log("equal");
+			console.log("angleB = "+angleB*180/Math.PI);
+		}
+
+
+
+		this.sides[0] = sideLgth(side.points[0], side.points[1]);
+		// this.sides[0] = Math.sqrt(Math.pow((side.points[0][0] - side.points[1][0]), 2) + Math.pow((side.points[0][1] - side.points[1][1]), 2));
 		this.sides[1] = getRandomInt(lMin, lMax);
 		this.sides[2] = getRandomInt(lMin, lMax);
 
-		this.points[0] = a;
-		this.points[1] = b;
+		this.points[0] = side.points[0];
+		this.points[1] = side.points[1];
 
 		this.center = [
-			(this.points[0][0] + this.points[1][0]) / 2 + ((this.points[0][0] + this.points[1][0]) / 2 - threangle.center[0]),
-			(this.points[0][1] + this.points[1][1]) / 2 + ((this.points[0][1] + this.points[1][1]) / 2 - threangle.center[1])
+			(this.points[0][0] + this.points[1][0]) / 2 + ((this.points[0][0] + this.points[1][0]) / 2 - side.parentA.center[0]),
+			(this.points[0][1] + this.points[1][1]) / 2 + ((this.points[0][1] + this.points[1][1]) / 2 - side.parentA.center[1])
 		];
 		
 		this.points[2] = therdPoint(this);
 		this.center = centerNormalize(this);
+
+		var a =Object.create(sideProto).constructor(this.sides[2], true, [this.points[0], this.points[2]], this);
+		var b = Object.create(sideProto).constructor(this.sides[1], true, [this.points[2], this.points[1]], this);
+
+		allSides.splice(allSides.indexOf(side), 1, a, b);
+
+
 
 		return this;
 
@@ -150,7 +211,7 @@ var drawObject = function(obj) {
 	ctx.fill();
 	ctx.closePath();
 
-	ctx.fillStyle = "#fff";
+	ctx.fillStyle = "#000";
 	ctx.fillRect(obj.center[0]-1,obj.center[1]-1, 2, 2);
 	ctx.fillStyle = "red";
 	ctx.fillRect(obj.points[0][0]-1,obj.points[0][1]-1, 2, 2);
@@ -163,24 +224,58 @@ var drawObject = function(obj) {
 }
 
 
+
 function draw() {
-	threangle.draw();
+	threangles.push(Object.create(threangleStart).constructor());
+	threangles[0].draw();
 
 	// console.log(threangle);
 
-	threangles = [];
 
-	threangles.push(Object.create(threangleProto).constructor(threangle.points[0], threangle.points[1]));
-	threangles.push(Object.create(threangleProto).constructor(threangle.points[1], threangle.points[2]));
-	threangles.push(Object.create(threangleProto).constructor(threangle.points[2], threangle.points[0]));
+
+	// threangles.push(Object.create(threangleProto).constructor(threangle.points[0], threangle.points[1]));
+	// threangles.push(Object.create(threangleProto).constructor(threangle.points[1], threangle.points[2]));
+	// threangles.push(Object.create(threangleProto).constructor(threangle.points[2], threangle.points[0]));
 
 	// console.log(threangles[0]);
 	// console.log(threangles[1]);
 	// console.log(threangles[2]);
 
-	threangles[0].draw();
-	threangles[1].draw();
-	threangles[2].draw();
+	// threangles[0].draw();
+	// threangles[1].draw();
+	// threangles[2].draw();
+
+		console.log(allSides);
+	// setTimeout(function(){
+
+
+		var c = allSides.slice(0); 
+		console.log(c);
+
+		for (var i = 0; i < c.length; i++) {
+			if (allSides[i].state = true) {
+				threangles.push(Object.create(threangleProto).constructor(c[i]));
+				threangles[i+1].draw();
+			}
+			
+		};
+		console.log(allSides);
+	console.log(threangles);
+	// }, 1000);
+	var c = allSides.slice(0); 
+	console.log(c);
+
+	tc = threangles.length;
+
+	for (var i = 0; i < c.length; i++) {
+		if (allSides[i].state = true) {
+			threangles.push(Object.create(threangleProto).constructor(c[i]));
+			threangles[tc+i].draw();
+		}
+		
+	};
+	console.log(threangles);
+	console.log(allSides);
 
 };
 
